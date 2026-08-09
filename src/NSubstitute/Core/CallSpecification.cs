@@ -91,10 +91,7 @@ public class CallSpecification(MethodInfo methodInfo, IEnumerable<IArgumentSpeci
             var areAssignable = allowAssignableTypes && specType.IsAssignableFrom(callType);
             var areAnyTypeAssignable = typeof(Arg.AnyType).IsAssignableFrom(specType) ||
                                        typeof(Arg.AnyType).IsAssignableFrom(callType);
-            var areByRefAnyTypeAssignable = specType.IsByRef && callType.IsByRef &&
-                                            (typeof(Arg.AnyType).IsAssignableFrom(specType.GetElementType()) ||
-                                             typeof(Arg.AnyType).IsAssignableFrom(callType.GetElementType()));
-            var areEquivalent = areIdentical || areAssignable || areAnyTypeAssignable || areByRefAnyTypeAssignable;
+            var areEquivalent = areIdentical || areAssignable || areAnyTypeAssignable;
             if (!areEquivalent) return false;
         }
         return true;
