@@ -26,6 +26,9 @@ public class GenericArguments
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 
+    public class Animal { }
+    public class Cat : Animal { }
+
     [Test]
     public void Any_matcher_works_with_AnyType()
     {
@@ -209,5 +212,33 @@ public class GenericArguments
         ICollection<int> result = something.SomeFunctionWithoutGenericMethodParameter<int>(7);
 
         Assert.That(result.Count, Is.EqualTo(7));
+    }
+
+    [Test]
+    public void Call_to_one_generic_instantiation_is_not_received_as_a_different_instantiation()
+    {
+        ISomethingWithGenerics something = Substitute.For<ISomethingWithGenerics>();
+        var cat = new Cat();
+
+        // Call the SomeAction<Animal> instantiation. Even though the passed value is a Cat,
+        // this is *not* a call to the SomeAction<Cat> instantiation.
+        something.SomeAction<Animal>(7, cat);
+
+        something.Received().SomeAction<Animal>(7, Arg.Any<Animal>());
+        something.DidNotReceive().SomeAction<Cat>(7, Arg.Any<Cat>());
+    }
+
+    [Test]
+    public void Configured_return_for_one_generic_instantiation_does_not_apply_to_another()
+    {
+        ISomethingWithGenerics something = Substitute.For<ISomethingWithGenerics>();
+
+        // Configure the SomeFunctionWithOut<Cat> instantiation only.
+        something.SomeFunctionWithOut<Cat>(out Arg.Any<IEnumerable<Cat>>()).Returns(true);
+
+        // Calling a different instantiation must not pick up the configured return value.
+        bool result = something.SomeFunctionWithOut<Animal>(out _);
+
+        Assert.That(result, Is.False);
     }
 }
